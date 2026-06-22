@@ -139,7 +139,6 @@ export function renderResumeToTarget(resumeData, sectionOrder, templateKey = 'cl
     if (sec === 'languages' && d.languages?.length) {
       html += sH('Languages') + `<p style="${styleStr(t.bodyStyle)};margin:0;">${d.languages.map(l => typeof l === 'string' ? l : `${l.name}${l.proficiency ? ` (${l.proficiency})` : ''}`).join(' · ')}</p>`;
     }
-  }
 
     if (sec === 'extracurricular' && d.extracurricular?.length) {
       html += sH('Extracurricular Activities');
@@ -151,15 +150,18 @@ export function renderResumeToTarget(resumeData, sectionOrder, templateKey = 'cl
         }
       }
     }
+
     if (sec === 'interests' && d.interests?.length) {
       html += sH('Interests') + `<p style="${styleStr(t.bodyStyle)};margin:0;">${d.interests.map(x => typeof x === 'string' ? x : x.name).join(' · ')}</p>`;
     }
+
     if (sec === 'publications' && d.publications?.length) {
       html += sH('Publications');
       for (const pub of d.publications) {
         html += `<div style="margin-bottom:6px;"><strong style="${styleStr(t.bodyStyle)};font-weight:700;">${typeof pub === 'string' ? pub : pub.title || ''}</strong>${pub.journal ? `<span style="${styleStr(t.bodyStyle)};color:#666;"> — ${pub.journal}${pub.year ? `, ${pub.year}` : ''}</span>` : ''}</div>`;
       }
     }
+
     if (sec === 'references') {
       html += sH('References') + `<p style="${styleStr(t.bodyStyle)};color:#666;margin:0;font-style:italic;">Available upon request.</p>`;
     }
