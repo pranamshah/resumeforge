@@ -1,0 +1,252 @@
+import { useState, useEffect } from 'react';
+import ResumePreview from './ResumePreview.jsx';
+import TemplateSelector from './TemplateSelector.jsx';
+import { renderResumeToTarget } from './ResumeExportTarget.jsx';
+import { exportResumeToPDF } from '../utils/pdfExport.js';
+import { saveResumeRecord } from '../firebase.js';
+import { showToast } from '../utils/toast.js';
+
+function ATSArc({ score }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    let cur = 0;
+    const t = setInterval(() => {
+      cur = Math.min(cur + 2, score);
+      setDisplay(cur);
+      if (cur >= score) clearInterval(t);
+    }, 20);
+    return () => clearInterval(t);
+  }, [score]);
+
+  const R = 90, cx = 96, cy = 96;
+  const circ = 2 * Math.PI * R;
+  const offset = circ - (display / 100) * circ;
+  const color = score >= 75 ? '#4ade80' : score >= 50 ? '#fbbf24' : '#f87171';
+
+  return (
+    <div className="flex flex-col items-center justify-center text-center relative">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+      <div className="relative mb-md">
+        <svg className="w-48 h-48 transform -rotate-90" viewBox="0 0 192 192">
+          <circle cx={cx} cy={cy} r={R} fill="transparent" stroke="#334155" strokeWidth="8" />
+          <circle cx={cx} cy={cy} r={R} fill="transparent" stroke={color} strokeWidth="8"
+            strokeDasharray={circ} strokeDashoffset={offset}
+            strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.05s' }} />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="font-headline-xl text-headline-xl leading-none font-mono" style={{ color }}>{display}</span>
+          <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">ATS Score</span>
+        </div>
+      </div>
+      <h2 className="font-headline-lg text-headline-lg mb-xs" style={{ fontSize: 20 }}>
+        {score >= 80 ? 'Elite Match Found' : score >= 60 ? 'Strong Candidate' : 'Needs Improvement'}
+      </h2>
+    </div>
+  );
+}
+
+export default function ResultsScreen({ user, customizedResult, company, jobTitle, resumeData, setResumeData, setCustomizedResult, setCompany, setJobTitle, setJobDescription, setScreen, selectedTemplate, setSelectedTemplate, activeFlow }) {
+  const [downloading, setDownloading] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+
+  if (!customizedResult) return null;
+
+  const { customized_resume, ats_score, missing_skills, key_changes, top_hire_insights, section_order } = customizedResult;
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      renderResumeToTarget(customized_resume, section_order, selectedTemplate);
+      await new Promise(r => setTimeout(r, 300));
+      await exportResumeToPDF(customized_resume, company);
+      showToast('Resume downloaded!', 'success');
+      if (user) {
+        await saveResumeRecord(user, { company, role: jobTitle, atsScore: ats_score, flow: activeFlow || 'upload' });
+      }
+    } catch (err) {
+      showToast(err.message || 'Download failed. Try again.', 'error');
+    }
+    setDownloading(false);
+  };
+
+  const handleCustomizeAnother = () => {
+    setCompany('');
+    setJobTitle('');
+    setJobDescription('');
+    setScreen('target');
+  };
+
+  return (
+    <div className="flex flex-1 overflow-hidden min-h-screen">
+      {showTemplates && <TemplateSelector selectedTemplate={selectedTemplate} setSelectedTemplate={setSelectedTemplate} onClose={() => setShowTemplates(false)} />}
+
+      {/* Left Sidebar */}
+      <aside className="hidden md:flex flex-col h-screen p-sm gap-xs border-r border-outline-variant bg-surface-container w-64 shrink-0 sticky top-0 overflow-y-auto">
+        <div className="px-xs py-sm mb-md">
+          <h1 className="font-headline-lg text-headline-lg font-black text-primary" style={{ fontSize: 20 }}>Results</h1>
+          <p className="font-body-sm text-body-sm text-on-surface-variant">AI Customization Complete</p>
+        </div>
+        <nav className="flex flex-col gap-xs flex-1">
+          {[
+            { icon: 'analytics', label: 'ATS Score' },
+            { icon: 'psychology', label: 'Top Hire Insights' },
+            { icon: 'auto_awesome', label: 'Key Changes' },
+            { icon: 'warning', label: 'Skills Gap' },
+          ].map(item => (
+            <div key={item.label} className="flex items-center gap-sm p-sm text-on-surface-variant rounded-lg border border-outline-variant/30">
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{item.icon}</span>
+              <span className="font-label-md text-label-md">{item.label}</span>
+            </div>
+          ))}
+        </nav>
+        <div className="flex flex-col gap-xs mt-auto pt-md border-t border-outline-variant">
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="bg-primary text-on-primary font-label-md text-label-md p-sm rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-xs electric-glow"
+          >
+            {downloading
+              ? <><span className="material-symbols-outlined animate-spin" style={{ fontSize: 16 }}>sync</span> Generating...</>
+              : <><span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span> Download PDF</>
+            }
+          </button>
+          <button onClick={() => setShowTemplates(true)} className="flex items-center gap-sm p-sm text-on-surface-variant hover:bg-surface-variant transition-all rounded-lg">
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>style</span>
+            <span className="font-label-md text-label-md">Templates</span>
+          </button>
+          <button onClick={handleCustomizeAnother} className="flex items-center gap-sm p-sm text-on-surface-variant hover:bg-surface-variant transition-all rounded-lg">
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>cycle</span>
+            <span className="font-label-md text-label-md">Customize Again</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto bg-background p-md md:p-lg">
+        <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+          {/* Left: Analysis */}
+          <div className="lg:col-span-5 flex flex-col gap-lg">
+            {/* ATS Score */}
+            <div className="bg-surface-container-low rounded-xl border border-outline-variant p-lg">
+              <ATSArc score={ats_score || 0} />
+              <p className="font-body-md text-body-md text-on-surface-variant text-center mt-sm">
+                Your resume is highly optimized for the <strong className="text-on-surface">{jobTitle}</strong> role at <strong className="text-on-surface">{company}</strong>.
+              </p>
+            </div>
+
+            {/* Top Hire Insights */}
+            {top_hire_insights && (
+              <div className="bg-surface-container rounded-xl border border-outline-variant p-md">
+                <div className="flex items-center gap-sm mb-md">
+                  <span className="material-symbols-outlined text-primary">psychology</span>
+                  <h3 className="font-label-md text-label-md text-on-surface uppercase tracking-widest">What Gets People Hired at {company}</h3>
+                </div>
+                {top_hire_insights.typical_background && (
+                  <p className="font-body-sm text-body-sm text-on-surface-variant mb-md">{top_hire_insights.typical_background}</p>
+                )}
+                {top_hire_insights.must_have_skills?.length > 0 && (
+                  <div className="mb-md">
+                    <p className="font-label-sm text-label-sm text-on-surface-variant mb-xs">Must-Have Skills</p>
+                    <div className="flex flex-wrap gap-xs">
+                      {top_hire_insights.must_have_skills.map((s, i) => (
+                        <span key={i} className="px-xs py-0.5 rounded-full font-label-sm text-label-sm border border-primary/30 bg-primary/10 text-primary">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {top_hire_insights.ats_keywords_found?.length > 0 && (
+                  <div className="mb-md">
+                    <p className="font-label-sm text-label-sm text-on-surface-variant mb-xs">ATS Keywords Found</p>
+                    <div className="flex flex-wrap gap-xs">
+                      {top_hire_insights.ats_keywords_found.map((k, i) => (
+                        <span key={i} className="px-xs py-0.5 rounded-full font-label-sm text-label-sm border border-secondary/30 bg-secondary/10 text-secondary">{k}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {top_hire_insights.culture_signals?.length > 0 && (
+                  <div>
+                    <p className="font-label-sm text-label-sm text-on-surface-variant mb-xs">Culture Signals</p>
+                    <ul className="space-y-xs">
+                      {top_hire_insights.culture_signals.map((s, i) => (
+                        <li key={i} className="flex items-start gap-xs font-body-sm text-body-sm text-on-surface-variant">
+                          <span className="material-symbols-outlined text-primary flex-shrink-0" style={{ fontSize: 14, marginTop: 3 }}>fiber_manual_record</span>
+                          {s}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Key Changes */}
+            {key_changes?.length > 0 && (
+              <div className="bg-surface-container rounded-xl border border-outline-variant p-md">
+                <div className="flex items-center gap-sm mb-md">
+                  <span className="material-symbols-outlined text-primary">auto_awesome</span>
+                  <h3 className="font-label-md text-label-md text-on-surface uppercase tracking-widest">Key Changes Made</h3>
+                </div>
+                <ul className="flex flex-col gap-sm">
+                  {key_changes.map((c, i) => (
+                    <li key={i} className="flex items-start gap-sm">
+                      <span className="material-symbols-outlined text-primary flex-shrink-0" style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                      <p className="font-body-sm text-body-sm text-on-surface">{c}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Skills Gap */}
+            {missing_skills?.length > 0 && (
+              <div className="bg-surface-container rounded-xl border border-outline-variant p-md">
+                <div className="flex items-center gap-sm mb-md">
+                  <span className="material-symbols-outlined text-tertiary">warning</span>
+                  <h3 className="font-label-md text-label-md text-on-surface uppercase tracking-widest">Skills Gap</h3>
+                </div>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mb-md">
+                  To reach 100%, consider adding these if you genuinely have them — don't fabricate:
+                </p>
+                <div className="flex flex-wrap gap-xs">
+                  {missing_skills.map((s, i) => (
+                    <span key={i} className="bg-tertiary-container/20 text-tertiary border border-tertiary-container/30 px-sm py-xs rounded-full font-label-sm text-label-sm flex items-center gap-xs">
+                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add</span>
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons (mobile) */}
+            <div className="flex flex-col sm:flex-row gap-sm md:hidden">
+              <button onClick={handleDownload} disabled={downloading} className="flex-1 bg-primary text-on-primary font-label-md text-label-md py-md rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-sm electric-glow">
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>
+                Download PDF
+              </button>
+              <button onClick={handleCustomizeAnother} className="flex-1 border border-outline-variant text-on-surface font-label-md text-label-md py-md rounded-lg hover:bg-surface-variant flex items-center justify-center gap-sm">
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>cycle</span>
+                Customize Again
+              </button>
+            </div>
+          </div>
+
+          {/* Right: Resume Preview */}
+          <div className="lg:col-span-7 flex flex-col gap-md">
+            <div className="flex justify-between items-center px-sm">
+              <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">ATS Preview</span>
+              <div className="flex gap-xs">
+                <button onClick={() => setShowTemplates(true)} className="flex items-center gap-xs px-sm py-xs hover:bg-surface-variant rounded transition-colors font-label-sm text-label-sm text-primary border border-primary/30">
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>style</span>
+                  Change Template
+                </button>
+              </div>
+            </div>
+            <ResumePreview resumeData={customized_resume} sectionOrder={section_order} selectedTemplate={selectedTemplate} />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
