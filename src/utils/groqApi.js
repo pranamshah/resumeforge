@@ -158,7 +158,7 @@ export const refineResume = async (apiKey, currentResume, suggestion, company, j
   const text = await callAI(apiKey, {
     model: 'llama-3.1-8b-instant',
     jsonMode: false,
-    maxTokens: 2000,
+    maxTokens: 3500,
     system: `Resume writer for ${jobTitle} at ${company}. Apply ONLY the requested change. Keep all other content identical. Return ONLY updated JSON, no markdown.`,
     user: `Resume: ${compressResume(currentResume, 2000)}\nChange: "${suggestion}"\nReturn updated JSON only.`,
   });

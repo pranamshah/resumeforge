@@ -429,7 +429,9 @@ function renderSections(resumeData, sectionOrder, t) {
   });
 }
 
-export default function ResumePreview({ resumeData, sectionOrder, selectedTemplate = 'classic' }) {
+import { forwardRef } from 'react';
+
+const ResumePreview = forwardRef(function ResumePreview({ resumeData, sectionOrder, selectedTemplate = 'classic' }, ref) {
   const t = TEMPLATES[selectedTemplate] || TEMPLATES.classic;
   const p = resumeData?.personal || {};
   const isDark = !!t.headerBg;
@@ -439,7 +441,7 @@ export default function ResumePreview({ resumeData, sectionOrder, selectedTempla
   if (p.github) linkParts.push(p.github);
 
   return (
-    <div className="bg-white text-[#111827] resume-shadow rounded overflow-hidden relative selection:bg-blue-100" style={{ minHeight: 800 }}>
+    <div ref={ref} className="bg-white text-[#111827] resume-shadow rounded overflow-hidden relative selection:bg-blue-100" style={{ minHeight: 800 }}>
       <div style={{ padding: '48px', fontFamily: 'Arial,sans-serif', fontSize: '10pt', lineHeight: 1.5 }}>
         {/* Header */}
         {isDark ? (
@@ -460,9 +462,11 @@ export default function ResumePreview({ resumeData, sectionOrder, selectedTempla
         {renderSections(resumeData, sectionOrder, t)}
       </div>
 
-      <div className="absolute top-2 right-2 bg-surface-container border border-outline-variant text-on-surface-variant font-label-sm text-label-sm px-xs py-0.5 rounded opacity-60">
+      <div className="preview-badge absolute top-2 right-2 bg-surface-container border border-outline-variant text-on-surface-variant font-label-sm text-label-sm px-xs py-0.5 rounded opacity-60">
         Preview
       </div>
     </div>
   );
-}
+});
+
+export default ResumePreview;

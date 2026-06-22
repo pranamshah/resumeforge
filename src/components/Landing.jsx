@@ -47,15 +47,6 @@ export default function Landing({ user, onUpload, onBuild, onSignIn }) {
             </div>
           )}
 
-          {/* Stats */}
-          <div className="pt-xl flex flex-wrap justify-center gap-xl opacity-60">
-            {[['98%','ATS PASS RATE'],['12k+','JOBS LANDED'],['4.9/5','USER RATING']].map(([n, l]) => (
-              <div key={l} className="flex flex-col items-center">
-                <span className="font-headline-lg text-headline-lg text-white">{n}</span>
-                <span className="font-label-sm text-label-sm text-on-surface-variant">{l}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 

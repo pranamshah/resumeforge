@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ResumePreview from './ResumePreview.jsx';
 import TemplateSelector from './TemplateSelector.jsx';
-import { renderResumeToTarget } from './ResumeExportTarget.jsx';
 import { exportResumeToPDF } from '../utils/pdfExport.js';
 import { refineResume } from '../utils/groqApi.js';
 import { saveResumeRecord } from '../db.js';
@@ -52,6 +51,7 @@ export default function ResultsScreen({ user, groqKey, customizedResult, company
   const [refining, setRefining] = useState(false);
   const [refineHistory, setRefineHistory] = useState([]);
   const [activeSections, setActiveSections] = useState(null);
+  const previewRef = useRef(null);
 
   if (!customizedResult) return null;
 
@@ -62,7 +62,6 @@ export default function ResultsScreen({ user, groqKey, customizedResult, company
   const OPTIONAL_SECTIONS = [
     { key: 'extracurricular', label: 'Extracurricular', icon: 'sports_esports' },
     { key: 'languages', label: 'Languages', icon: 'translate' },
-    { key: 'volunteer', label: 'Volunteer', icon: 'volunteer_activism' },
     { key: 'awards', label: 'Awards', icon: 'emoji_events' },
     { key: 'publications', label: 'Publications', icon: 'menu_book' },
     { key: 'interests', label: 'Interests', icon: 'interests' },
@@ -88,11 +87,10 @@ export default function ResultsScreen({ user, groqKey, customizedResult, company
   };
 
   const handleDownload = async () => {
+    if (!previewRef.current) return;
     setDownloading(true);
     try {
-      renderResumeToTarget(customized_resume, currentSectionOrder, selectedTemplate);
-      await new Promise(r => setTimeout(r, 300));
-      await exportResumeToPDF(customized_resume, company);
+      await exportResumeToPDF(previewRef.current, customized_resume, company);
       showToast('Resume downloaded!', 'success');
       if (user) {
         await saveResumeRecord(user, { company, role: jobTitle, atsScore: ats_score, flow: activeFlow || 'upload' });
@@ -382,7 +380,7 @@ export default function ResultsScreen({ user, groqKey, customizedResult, company
                 Change Template
               </button>
             </div>
-            <ResumePreview resumeData={customized_resume} sectionOrder={currentSectionOrder} selectedTemplate={selectedTemplate} />
+            <ResumePreview ref={previewRef} resumeData={customized_resume} sectionOrder={currentSectionOrder} selectedTemplate={selectedTemplate} />
           </div>
         </div>
       </main>
