@@ -1,15 +1,15 @@
 // Fill in your values after Firebase setup — see docs/FIREBASE_SETUP.md
 export const FIREBASE_CONFIG = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyANlKsnE7JPy-TBC67_kYdOSaFM-7TH6sg",
+  authDomain: "resumeforge-27733.firebaseapp.com",
+  projectId: "resumeforge-27733",
+  storageBucket: "resumeforge-27733.firebasestorage.app",
+  messagingSenderId: "406485059840",
+  appId: "1:406485059840:web:7647738b62aef8907e8be5",
 };
 
 // Your Gmail — this account gets admin dashboard access
-export const ADMIN_EMAIL = "your-email@gmail.com";
+export const ADMIN_EMAIL = "shahpranam31@gmail.com";
 
 // Optional: put your Groq key here to share with all users
 // Leave empty "" to make users enter their own key
