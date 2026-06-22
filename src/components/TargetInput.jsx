@@ -1,10 +1,62 @@
 import { useState } from 'react';
 import { customizeResume } from '../utils/groqApi.js';
+import { checkAndIncrementUsage } from '../firebase.js';
 import { showToast } from '../utils/toast.js';
 
-export default function TargetInput({ groqKey, resumeData, company, setCompany, jobTitle, setJobTitle, jobDescription, setJobDescription, setCustomizedResult, setScreen }) {
+function LimitModal({ resetAt, onBack }) {
+  const now = new Date();
+  const msLeft = resetAt - now;
+  const hoursLeft = Math.ceil(msLeft / (1000 * 60 * 60));
+  const minutesLeft = Math.ceil(msLeft / (1000 * 60));
+  const timeLabel = hoursLeft >= 1 ? `${hoursLeft}h` : `${minutesLeft}m`;
+  const resetTime = resetAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-md">
+      <div className="bg-surface-container border border-outline-variant rounded-2xl p-xl max-w-sm w-full text-center fade-in">
+        <div className="w-20 h-20 rounded-full bg-tertiary/10 border border-tertiary/30 flex items-center justify-center mx-auto mb-lg">
+          <span className="material-symbols-outlined text-tertiary" style={{ fontSize: 40, fontVariationSettings: "'FILL' 1" }}>lock_clock</span>
+        </div>
+
+        <h2 className="font-headline-lg text-headline-lg text-on-surface mb-sm">Daily Limit Reached</h2>
+        <p className="font-body-md text-body-md text-on-surface-variant mb-lg">
+          You've used your <strong className="text-on-surface">2 free AI resumes</strong> for today. Come back in <strong className="text-primary">{timeLabel}</strong> to generate more.
+        </p>
+
+        {/* Usage bar */}
+        <div className="bg-surface rounded-xl p-md mb-lg border border-outline-variant text-left">
+          <div className="flex justify-between items-center mb-xs">
+            <span className="font-label-sm text-label-sm text-on-surface-variant">Today's usage</span>
+            <span className="font-label-md text-label-md text-error font-mono">2 / 2</span>
+          </div>
+          <div className="h-2 bg-outline-variant rounded-full overflow-hidden">
+            <div className="h-full bg-error rounded-full w-full transition-all"></div>
+          </div>
+          <p className="font-label-sm text-label-sm text-on-surface-variant mt-xs">
+            Resets at {resetTime} · Limit resets every 24 hours
+          </p>
+        </div>
+
+        <div className="space-y-sm">
+          <p className="font-label-sm text-label-sm text-on-surface-variant">
+            Meanwhile, download your generated resume or refine it using suggestions.
+          </p>
+          <button
+            onClick={onBack}
+            className="w-full bg-primary text-on-primary font-label-md text-label-md py-md rounded-lg hover:opacity-90 transition-all electric-glow"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function TargetInput({ user, groqKey, resumeData, company, setCompany, jobTitle, setJobTitle, jobDescription, setJobDescription, setCustomizedResult, setScreen }) {
   const [skipJD, setSkipJD] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [limitData, setLimitData] = useState(null); // { resetAt }
 
   const handleSubmit = async () => {
     if (!company.trim() || !jobTitle.trim()) {
@@ -12,15 +64,24 @@ export default function TargetInput({ groqKey, resumeData, company, setCompany, 
       return;
     }
     setLoading(true);
+
+    // Check daily limit
+    if (user?.email) {
+      const usage = await checkAndIncrementUsage(user.email, 2);
+      if (!usage.allowed) {
+        setLimitData({ resetAt: usage.resetAt });
+        setLoading(false);
+        return;
+      }
+    }
+
     setScreen('loading');
     try {
       const result = await customizeResume(groqKey, resumeData, company, jobTitle, skipJD ? '' : jobDescription);
       setCustomizedResult(result);
       setScreen('results');
     } catch (err) {
-      if (err.message.includes('Invalid Groq')) showToast('Invalid API key. Check in settings.', 'error');
-      else if (err.message.includes('Rate limit')) showToast(err.message, 'warning');
-      else showToast(err.message || 'Customization failed. Try again.', 'error');
+      showToast(err.message || 'Customization failed. Try again.', 'error');
       setScreen('target');
     }
     setLoading(false);
@@ -28,6 +89,8 @@ export default function TargetInput({ groqKey, resumeData, company, setCompany, 
 
   return (
     <main className="flex-grow flex flex-col items-center py-xl px-margin-mobile md:px-margin-desktop">
+      {limitData && <LimitModal resetAt={limitData.resetAt} onBack={() => setScreen('landing')} />}
+
       <div className="w-full max-w-2xl space-y-lg">
         <div className="text-center">
           <div className="inline-flex items-center gap-xs px-sm py-base rounded-full bg-secondary-container/30 border border-outline-variant mb-md">
@@ -39,6 +102,14 @@ export default function TargetInput({ groqKey, resumeData, company, setCompany, 
             AI will research this company and role to craft a precision-targeted resume.
           </p>
         </div>
+
+        {/* Usage indicator */}
+        {user && (
+          <div className="flex items-center justify-center gap-xs font-label-sm text-label-sm text-on-surface-variant">
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>info</span>
+            2 free AI resumes per 24 hours
+          </div>
+        )}
 
         <div className="bg-surface-container border border-outline-variant rounded-xl p-lg space-y-md">
           <div className="space-y-base">
@@ -99,7 +170,7 @@ export default function TargetInput({ groqKey, resumeData, company, setCompany, 
             }`}
           >
             {loading ? (
-              <><span className="material-symbols-outlined animate-spin" style={{ fontSize: 18 }}>sync</span> Analyzing...</>
+              <><span className="material-symbols-outlined animate-spin" style={{ fontSize: 18 }}>sync</span> Checking...</>
             ) : (
               <><span className="material-symbols-outlined" style={{ fontSize: 18 }}>rocket_launch</span> Analyze & Customize</>
             )}

@@ -58,6 +58,29 @@ export const saveResumeRecord = async (user, { company, role, atsScore, flow }) 
   await updateDoc(statsRef, { totalResumes: increment(1), lastUpdatedAt: serverTimestamp() });
 };
 
+export const checkAndIncrementUsage = async (userEmail, limit = 2) => {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD UTC
+  const docId = userEmail.replace(/[^a-zA-Z0-9]/g, '_') + '_' + today;
+  const ref = doc(db, 'daily_usage', docId);
+  try {
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const { count, firstUse } = snap.data();
+      if (count >= limit) {
+        const firstUsed = firstUse?.toDate?.() || new Date();
+        const resetAt = new Date(firstUsed.getTime() + 24 * 60 * 60 * 1000);
+        return { allowed: false, count, resetAt };
+      }
+      await updateDoc(ref, { count: increment(1), lastUse: serverTimestamp() });
+      return { allowed: true, count: count + 1 };
+    }
+    await setDoc(ref, { email: userEmail, date: today, count: 1, firstUse: serverTimestamp(), lastUse: serverTimestamp() });
+    return { allowed: true, count: 1 };
+  } catch {
+    return { allowed: true, count: 0 }; // graceful: let through on Firestore error
+  }
+};
+
 export const getAdminStats = async () => {
   const [statsSnap, recentResumes, topUsers] = await Promise.all([
     getDoc(doc(db, 'stats', 'global')),
