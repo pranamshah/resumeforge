@@ -1,7 +1,7 @@
 import { TEMPLATES } from './ResumePreview.jsx';
 
 const styleStr = (obj) => Object.entries(obj)
-  .map(([k, v]) => `${k.replace(/([A-Z])/g, '-$1').toLowerCase()}:${v}`)
+  .map(([k, v]) => `${k.replace(/([A-Z])/g, '-$1').toLowerCase()}:${typeof v === 'number' ? v : v}`)
   .join(';');
 
 export function renderResumeToTarget(resumeData, sectionOrder, templateKey = 'classic') {
@@ -11,29 +11,30 @@ export function renderResumeToTarget(resumeData, sectionOrder, templateKey = 'cl
   const t = TEMPLATES[templateKey] || TEMPLATES.classic;
   const d = resumeData || {};
   const p = d.personal || {};
-  const order = sectionOrder || ['personal', 'summary', 'experience', 'skills', 'education', 'projects', 'certifications'];
+  const order = sectionOrder || ['personal','summary','skills','experience','projects','education','certifications','achievements'];
 
   const contactParts = [p.email, p.phone, p.location].filter(Boolean);
-  const linkParts = [p.linkedin, p.github, p.website].filter(Boolean);
+  const linkParts = [p.linkedin, p.website, p.github].filter(Boolean);
 
   const sH = (text) => `<div style="${styleStr(t.sectionHeaderStyle)}">${text}</div>`;
 
-  // Build header HTML per template
+  // Generic header — works for all 15 templates
   let headerHtml = '';
-  if (templateKey === 'executive') {
+  if (t.headerBg) {
     headerHtml = `
-      <div style="background:#111827;padding:20px 48px;margin:-48px -48px 16px;">
+      <div style="background:${t.headerBg};padding:20px 48px;margin:-48px -48px 16px;">
         <div style="${styleStr(t.nameStyle)}">${p.name || ''}</div>
         ${contactParts.length ? `<div style="${styleStr(t.contactStyle)}">${contactParts.join(' | ')}</div>` : ''}
-        ${linkParts.length ? `<div style="${styleStr({ ...t.contactStyle, color: '#93c5fd' })}">${linkParts.join(' | ')}</div>` : ''}
+        ${linkParts.length ? `<div style="${styleStr(t.contactStyle)};opacity:0.8;">${linkParts.join(' | ')}</div>` : ''}
       </div>`;
   } else {
-    const hAlign = templateKey === 'classic' ? 'text-align:center;' : '';
+    const align = t.headerAlign === 'center' ? 'text-align:center;' : '';
+    const border = t.headerBorder ? `border-bottom:${t.headerBorder};padding-bottom:16px;` : '';
     headerHtml = `
-      <div style="${hAlign}border-bottom:${templateKey === 'modern' ? '2px solid #2563eb' : templateKey === 'accent' ? '1px solid #d1d5db' : '2px solid #111'};padding-bottom:16px;margin-bottom:16px;">
+      <div style="${align}${border}margin-bottom:16px;">
         <div style="${styleStr(t.nameStyle)}">${p.name || ''}</div>
         ${contactParts.length ? `<div style="${styleStr(t.contactStyle)}">${contactParts.join(' | ')}</div>` : ''}
-        ${linkParts.length ? `<div style="${styleStr({ ...t.contactStyle, color: '#2563EB' })}">${linkParts.join(' | ')}</div>` : ''}
+        ${linkParts.length ? `<div style="${styleStr(t.contactStyle)};color:#2563EB;">${linkParts.join(' | ')}</div>` : ''}
       </div>`;
   }
 
@@ -90,11 +91,18 @@ export function renderResumeToTarget(resumeData, sectionOrder, templateKey = 'cl
     if (sec === 'projects' && d.projects?.length) {
       html += sH('Projects');
       for (const proj of d.projects) {
+        const showLink = proj.link && !proj.link.includes('github.com');
         html += `
           <div style="margin-bottom:10px;">
-            <strong style="${styleStr(t.bodyStyle)};font-weight:700;">${proj.name || ''}</strong>${proj.link ? ` <span style="${styleStr(t.dateStyle)};color:#2563eb;">${proj.link}</span>` : ''}
-            ${proj.description ? `<p style="${styleStr(t.bodyStyle)};color:#555;margin:2px 0 0;">${proj.description}</p>` : ''}
-            ${(proj.bullets || []).filter(Boolean).map(b => `<li style="${styleStr(t.bodyStyle)};margin-left:16px;margin-bottom:2px;">${b}</li>`).join('')}
+            <div style="display:flex;justify-content:space-between;align-items:baseline;">
+              <strong style="${styleStr(t.bodyStyle)};font-weight:700;">${proj.name || ''}</strong>
+              ${showLink ? `<span style="${styleStr(t.dateStyle)};color:#2563eb;">${proj.link}</span>` : ''}
+            </div>
+            ${proj.techStack?.length ? `<div style="${styleStr(t.bodyStyle)};font-size:9.5pt;color:#666;margin-top:1px;">${proj.techStack.join(' · ')}</div>` : ''}
+            ${proj.description ? `<p style="${styleStr(t.bodyStyle)};color:#444;margin:2px 0 0;">${proj.description}</p>` : ''}
+            <ul style="margin:2px 0 0 16px;padding:0;">
+              ${(proj.bullets || []).filter(Boolean).map(b => `<li style="${styleStr(t.bodyStyle)};margin-bottom:2px;">${b}</li>`).join('')}
+            </ul>
           </div>`;
       }
     }
@@ -102,12 +110,34 @@ export function renderResumeToTarget(resumeData, sectionOrder, templateKey = 'cl
     if (sec === 'certifications' && d.certifications?.length) {
       html += sH('Certifications');
       for (const c of d.certifications) {
-        html += `<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><strong style="${styleStr(t.bodyStyle)};font-weight:700;">${c.name || ''}</strong><span style="${styleStr(t.dateStyle)}">${[c.issuer, c.year].filter(Boolean).join(' · ')}</span></div>`;
+        html += `<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="${styleStr(t.bodyStyle)};font-weight:600;">${c.name || ''}</span><span style="${styleStr(t.dateStyle)}">${[c.issuer, c.year].filter(Boolean).join(' · ')}</span></div>`;
       }
     }
 
     if (sec === 'achievements' && d.achievements?.length) {
       html += sH('Achievements') + `<ul style="margin:0;padding-left:16px;">${d.achievements.map(a => `<li style="${styleStr(t.bodyStyle)};margin-bottom:2px;">${a}</li>`).join('')}</ul>`;
+    }
+
+    if (sec === 'awards' && d.awards?.length) {
+      html += sH('Awards & Honors') + `<ul style="margin:0;padding-left:16px;">${d.awards.map(a => `<li style="${styleStr(t.bodyStyle)};margin-bottom:2px;">${typeof a === 'string' ? a : `${a.title || ''} — ${a.issuer || ''} ${a.year || ''}`.trim()}</li>`).join('')}</ul>`;
+    }
+
+    if (sec === 'volunteer' && d.volunteer?.length) {
+      html += sH('Volunteer Experience');
+      for (const v of d.volunteer) {
+        html += `
+          <div style="margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;">
+              <strong style="${styleStr(t.bodyStyle)};font-weight:700;">${v.role || ''}${v.organization ? ` | ${v.organization}` : ''}</strong>
+              <span style="${styleStr(t.dateStyle)}">${v.date || ''}</span>
+            </div>
+            ${v.description ? `<p style="${styleStr(t.bodyStyle)};color:#555;margin:2px 0 0;">${v.description}</p>` : ''}
+          </div>`;
+      }
+    }
+
+    if (sec === 'languages' && d.languages?.length) {
+      html += sH('Languages') + `<p style="${styleStr(t.bodyStyle)};margin:0;">${d.languages.map(l => typeof l === 'string' ? l : `${l.name}${l.proficiency ? ` (${l.proficiency})` : ''}`).join(' · ')}</p>`;
     }
   }
 

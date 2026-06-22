@@ -117,7 +117,7 @@ export const extractResumeFromText = async (apiKey, resumeText) => {
     jsonMode: true,
     maxTokens: 2000,
     system: `Extract resume data. Return ONLY valid JSON, no markdown.
-Schema: {"personal":{"name":"","email":"","phone":"","linkedin":"","github":"","website":"","location":"","summary":""},"experience":[{"company":"","title":"","location":"","startDate":"","endDate":"","current":false,"bullets":[]}],"education":[{"school":"","degree":"","field":"","endDate":"","gpa":""}],"skills":{"languages":[],"frameworks":[],"tools":[],"databases":[],"cloud":[],"other":[]},"projects":[{"name":"","description":"","techStack":[],"link":"","bullets":[]}],"certifications":[{"name":"","issuer":"","year":""}],"achievements":[]}`,
+Schema: {"personal":{"name":"","email":"","phone":"","linkedin":"","github":"","website":"","location":"","summary":""},"experience":[{"company":"","title":"","location":"","startDate":"","endDate":"","current":false,"bullets":[]}],"education":[{"school":"","degree":"","field":"","endDate":"","gpa":""}],"skills":{"languages":[],"frameworks":[],"tools":[],"databases":[],"cloud":[],"other":[]},"projects":[{"name":"","description":"","techStack":[],"link":"","bullets":[]}],"certifications":[{"name":"","issuer":"","year":""}],"achievements":[],"awards":[],"languages":[],"volunteer":[]}`,
     user: `Extract from this resume text:\n\n${resumeText.slice(0, 4000)}`,
   });
   return parseJSON(text);
@@ -125,17 +125,30 @@ Schema: {"personal":{"name":"","email":"","phone":"","linkedin":"","github":"","
 
 export const customizeResume = async (apiKey, resumeData, company, jobTitle, jobDescription) => {
   const resumeCompressed = compressResume(resumeData, 2000);
-  const jd = (jobDescription || '').slice(0, 800);
+  const jd = (jobDescription || '').slice(0, 1000);
+
+  const SCHEMA = `{"customized_resume":{"personal":{"name":"","email":"","phone":"","linkedin":"","website":"","location":"","summary":""},"experience":[{"company":"","title":"","location":"","startDate":"","endDate":"","current":false,"bullets":[]}],"education":[{"school":"","degree":"","field":"","endDate":"","gpa":""}],"skills":{"languages":[],"frameworks":[],"tools":[],"databases":[],"cloud":[],"other":[]},"projects":[{"name":"","description":"","techStack":[],"link":"","bullets":[]}],"certifications":[{"name":"","issuer":"","year":""}],"achievements":[],"awards":[],"languages":[],"volunteer":[]},"ats_score":0,"missing_skills":[],"key_changes":[],"top_hire_insights":{"typical_background":"","must_have_skills":[],"ats_keywords_found":[],"culture_signals":[]},"section_order":["personal","summary","skills","experience","projects","education","certifications","achievements"]}`;
 
   const text = await callAI(apiKey, {
     model: 'compound-beta',
     jsonMode: false,
-    maxTokens: 3000,
-    system: `Elite resume strategist. Search: "${company} ${jobTitle} requirements 2025" and "${company} culture values hiring".
-Rewrite every bullet with: action verb + quantified result. Mirror ${company} language. Reorder skills for this role. Write a 2-3 sentence summary.
-ATS score 0-100 (keywords 40pts, quantified bullets 20pts, completeness 20pts, section order 10pts, structure 10pts).
-Return ONLY JSON: {"customized_resume":{"personal":{},"experience":[],"education":[],"skills":{},"projects":[],"certifications":[],"achievements":[]},"ats_score":0,"missing_skills":[],"key_changes":[],"top_hire_insights":{"typical_background":"","must_have_skills":[],"ats_keywords_found":[],"culture_signals":[]},"section_order":["personal","summary","skills","experience","projects","education","certifications"]}`,
-    user: `Company: ${company} | Role: ${jobTitle}${jd ? `\nJD: ${jd}` : ''}\nResume: ${resumeCompressed}`,
+    maxTokens: 4000,
+    system: `You are an elite resume strategist. Search: "${company} ${jobTitle} skills requirements 2025" and "${company} hiring culture values".
+
+MANDATORY RULES — follow ALL without exception:
+1. SKILLS: Add every technical skill from the JD to the skills section. Remove skills completely unrelated to ${jobTitle}.
+2. BULLETS: Rewrite every bullet with strong action verb + specific quantified metric. Mirror ${company} language and values from your research.
+3. PROJECTS: If fewer than 2 projects exist or they're unrelated to ${jobTitle}, CREATE 2 impressive realistic projects for this role with tech stack and 3 bullet points each with impact metrics. NEVER include github.com links — only include "link" if it is a live deployed URL.
+4. EXPERIENCE: If no relevant experience exists for ${jobTitle}, CREATE one realistic 3-month internship in 2024 at a recognizable company in this industry, with 3 strong achievement bullets.
+5. CERTIFICATIONS: ADD exactly 3 real, widely-recognized certifications most valued for ${jobTitle} at ${company}. Examples: Data roles → Google Professional Data Engineer, AWS Certified ML Specialty, IBM Data Science Professional Certificate. Software roles → AWS Solutions Architect, Google Cloud Professional, Meta Back-End Developer. Set year 2024-2025.
+6. SUMMARY: Write a compelling 3-sentence professional summary positioning the candidate as a perfect fit for ${company} and ${jobTitle}.
+7. ACHIEVEMENTS: Add 1-2 relevant achievements (hackathon placement, academic honor, competition, open source contribution).
+8. ATS SCORE 0-100: keyword match 40pts + quantified bullets 20pts + completeness 20pts + section order 10pts + formatting 10pts.
+Return ONLY valid JSON, no markdown:`,
+    user: `Company: ${company} | Role: ${jobTitle}${jd ? `\nJD: ${jd}` : ''}
+Resume: ${resumeCompressed}
+Return exactly this schema (fill ALL arrays — never leave them empty if you can enrich them):
+${SCHEMA}`,
   });
   return parseJSON(text);
 };

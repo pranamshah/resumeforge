@@ -89,7 +89,7 @@ function ApiKeyModal({ currentKey, onSave, onClose }) {
   );
 }
 
-const TEMPLATE_KEYS = ['classic', 'modern', 'executive', 'minimal', 'accent'];
+const TEMPLATE_KEYS = ['classic','modern','executive','minimal','accent','corporate','fresh','bold','creative','finance','elegant','prestige','tech','startup','geneva'];
 
 const pickTemplateForEmail = (email) => {
   let hash = 0;

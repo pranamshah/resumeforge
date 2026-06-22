@@ -1,11 +1,11 @@
-import { sql } from './_db.js';
+import { sql, ensureTables } from './_db.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   const { email } = req.body || {};
   if (!email) return res.status(400).json({ error: 'email required' });
-
   try {
+    await ensureTables();
     await sql`
       INSERT INTO signins (email, first_seen, last_active_at, sign_in_count)
       VALUES (${email}, NOW(), NOW(), 1)
