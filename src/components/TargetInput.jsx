@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { customizeResume } from '../utils/groqApi.js';
-import { checkAndIncrementUsage, saveResumeRecord } from '../firebase.js';
+import { checkAndIncrementUsage, saveResumeRecord } from '../db.js';
 import { showToast } from '../utils/toast.js';
 
 function LimitModal({ resetAt, onBack }) {

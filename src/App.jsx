@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { recordSignIn, isAdmin } from './firebase.js';
+import { recordSignIn, isAdmin } from './db.js';
 import { DEFAULT_GROQ_KEY } from './config.js';
 import { showToast } from './utils/toast.js';
 import Navbar from './components/Navbar.jsx';

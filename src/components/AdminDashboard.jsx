@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAdminStats } from '../firebase.js';
-import { isAdmin } from '../firebase.js';
+import { getAdminStats, isAdmin } from '../db.js';
 
 function StatCard({ icon, label, value, color = 'text-primary' }) {
   return (

@@ -4,7 +4,7 @@ import TemplateSelector from './TemplateSelector.jsx';
 import { renderResumeToTarget } from './ResumeExportTarget.jsx';
 import { exportResumeToPDF } from '../utils/pdfExport.js';
 import { refineResume } from '../utils/groqApi.js';
-import { saveResumeRecord } from '../firebase.js';
+import { saveResumeRecord } from '../db.js';
 import { showToast } from '../utils/toast.js';
 
 function ATSArc({ score }) {
