@@ -45,7 +45,13 @@ export const exportResumeToPDF = async (element, resumeData, company) => {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: #ffffff; }
   body { font-family: Inter, Arial, sans-serif; }
-  ul, li { break-inside: avoid; }
+  /* Keep whole sections together; move to a new page rather than splitting */
+  .resume-section { break-inside: avoid; page-break-inside: avoid; }
+  /* Never orphan a section heading at the bottom of a page */
+  .resume-section-header { break-after: avoid; page-break-after: avoid; }
+  /* For sections too tall for one page, keep each entry intact */
+  .resume-section > div { break-inside: avoid; page-break-inside: avoid; }
+  ul, li { break-inside: avoid; page-break-inside: avoid; }
 </style>
 </head><body>${clone.outerHTML}</body></html>`);
   doc.close();

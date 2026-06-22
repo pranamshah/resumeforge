@@ -243,8 +243,8 @@ export const TEMPLATES = {
 
 function Section({ title, t, children }) {
   return (
-    <div>
-      <div style={t.sectionHeaderStyle}>{title}</div>
+    <div className="resume-section">
+      <div className="resume-section-header" style={t.sectionHeaderStyle}>{title}</div>
       {children}
     </div>
   );
