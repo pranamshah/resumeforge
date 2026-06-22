@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+  getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult,
   signOut, onAuthStateChanged,
 } from 'firebase/auth';
 import {
@@ -14,16 +14,11 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
-export const signInWithGoogle = async () => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
-  } catch (err) {
-    if (err.code === 'auth/popup-blocked') {
-      await signInWithRedirect(auth, googleProvider);
-    }
-    throw err;
-  }
+export const signInWithGoogle = () => signInWithRedirect(auth, googleProvider);
+
+export const handleRedirectResult = async () => {
+  const result = await getRedirectResult(auth);
+  return result?.user ?? null;
 };
 
 export const signOutUser = () => signOut(auth);

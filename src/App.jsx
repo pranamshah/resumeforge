@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { onAuthChange, signInWithGoogle, signOutUser, createOrUpdateUser, checkUserExists, isAdmin } from './firebase.js';
+import { onAuthChange, signInWithGoogle, handleRedirectResult, signOutUser, createOrUpdateUser, checkUserExists, isAdmin } from './firebase.js';
 import { DEFAULT_GROQ_KEY } from './config.js';
 import { showToast } from './utils/toast.js';
 import Navbar from './components/Navbar.jsx';
@@ -62,6 +62,7 @@ export default function App() {
   const [jobDescription, setJobDescription] = useState('');
 
   useEffect(() => {
+    handleRedirectResult().catch(() => {});
     const unsub = onAuthChange(async (firebaseUser) => {
       if (firebaseUser) {
         const exists = await checkUserExists(firebaseUser.uid);
