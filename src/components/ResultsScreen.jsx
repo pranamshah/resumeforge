@@ -68,10 +68,24 @@ export default function ResultsScreen({ user, groqKey, customizedResult, company
     { key: 'references', label: 'References', icon: 'contact_page' },
   ];
 
+  const SECTION_DEFAULTS = {
+    awards: [{ title: 'Best Project Award — College Tech Fest', issuer: '', year: '2024' }],
+    publications: [{ title: 'Sample Publication Title', journal: '', year: '2024' }],
+    languages: [{ name: 'English', proficiency: 'Professional' }],
+    interests: ['Technology', 'Reading'],
+    extracurricular: [{ activity: 'Coding Club', role: 'Member', organization: '', duration: '2023 – 2024', description: '' }],
+  };
+
   const addSection = (secKey) => {
-    if (!currentSectionOrder.includes(secKey)) {
-      setActiveSections([...currentSectionOrder, secKey]);
+    if (currentSectionOrder.includes(secKey)) return;
+    // Seed placeholder data so the section actually renders (refine to edit it).
+    if (SECTION_DEFAULTS[secKey] && !customized_resume[secKey]?.length) {
+      setCustomizedResult({
+        ...customizedResult,
+        customized_resume: { ...customized_resume, [secKey]: SECTION_DEFAULTS[secKey] },
+      });
     }
+    setActiveSections([...currentSectionOrder, secKey]);
   };
 
   const removeSection = (secKey) => {

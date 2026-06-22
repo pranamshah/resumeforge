@@ -106,7 +106,18 @@ const parseJSON = (text) => {
   const start = cleaned.indexOf('{');
   const end = cleaned.lastIndexOf('}');
   if (start === -1 || end === -1) throw new Error('No JSON in AI response');
-  return JSON.parse(cleaned.slice(start, end + 1));
+  const slice = cleaned.slice(start, end + 1);
+  try {
+    return JSON.parse(slice);
+  } catch {
+    // Repair common model mistakes: trailing commas + missing commas between elements
+    const repaired = slice
+      .replace(/,\s*([}\]])/g, '$1')      // trailing commas before } or ]
+      .replace(/}\s*{/g, '},{')           // missing comma between objects
+      .replace(/]\s*\[/g, '],[')          // missing comma between arrays
+      .replace(/"\s*\n\s*"/g, '",\n"');   // missing comma between strings on new lines
+    return JSON.parse(repaired);
+  }
 };
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -157,10 +168,10 @@ ${SCHEMA}`,
 export const refineResume = async (apiKey, currentResume, suggestion, company, jobTitle) => {
   const text = await callAI(apiKey, {
     model: 'llama-3.1-8b-instant',
-    jsonMode: false,
-    maxTokens: 3500,
-    system: `Resume writer for ${jobTitle} at ${company}. Apply ONLY the requested change. Keep all other content identical. Return ONLY updated JSON, no markdown.`,
-    user: `Resume: ${compressResume(currentResume, 2000)}\nChange: "${suggestion}"\nReturn updated JSON only.`,
+    jsonMode: true,
+    maxTokens: 3000,
+    system: `Resume writer for ${jobTitle} at ${company}. Apply ONLY the requested change. Keep all other content identical. Return ONLY valid JSON, no markdown.`,
+    user: `Resume JSON: ${compressResume(currentResume, 2800)}\nChange: "${suggestion}"\nReturn the full updated resume as valid JSON.`,
   });
   return parseJSON(text);
 };
