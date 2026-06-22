@@ -1,17 +1,23 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-const A4_WIDTH_PX = 794; // 210mm at 96dpi — guarantees correct page proportions
-
 export const exportResumeToPDF = async (element, resumeData, company) => {
   if (!element) throw new Error('Preview element not found');
 
-  // Clone the live preview at a fixed A4 width so the PDF matches the
-  // on-screen preview exactly, with correct proportions (no narrow render).
+  // Make sure web fonts (Inter etc.) are loaded — otherwise html2canvas
+  // stalls/retries waiting for them, which is what caused the long hang.
+  if (document.fonts?.ready) {
+    try { await document.fonts.ready; } catch { /* ignore */ }
+  }
+
+  // Clone at the SAME width the preview is rendered at on screen so line
+  // wrapping and spacing are identical to what the user sees. Strip the
+  // badge / shadow / rounded corners that shouldn't be in the PDF.
+  const width = element.offsetWidth;
   const clone = element.cloneNode(true);
   clone.querySelectorAll('.preview-badge').forEach(b => b.remove());
   Object.assign(clone.style, {
-    width: `${A4_WIDTH_PX}px`,
+    width: `${width}px`,
     minHeight: 'auto',
     boxShadow: 'none',
     borderRadius: '0',
@@ -23,7 +29,7 @@ export const exportResumeToPDF = async (element, resumeData, company) => {
     position: 'fixed',
     left: '-10000px',
     top: '0',
-    width: `${A4_WIDTH_PX}px`,
+    width: `${width}px`,
     background: '#ffffff',
   });
   holder.appendChild(clone);
@@ -35,9 +41,11 @@ export const exportResumeToPDF = async (element, resumeData, company) => {
       useCORS: true,
       backgroundColor: '#ffffff',
       logging: false,
+      imageTimeout: 0,
+      removeContainer: true,
     });
 
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const imgH = (canvas.height * pageW) / canvas.width;
