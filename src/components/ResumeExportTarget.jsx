@@ -141,6 +141,30 @@ export function renderResumeToTarget(resumeData, sectionOrder, templateKey = 'cl
     }
   }
 
+    if (sec === 'extracurricular' && d.extracurricular?.length) {
+      html += sH('Extracurricular Activities');
+      for (const a of d.extracurricular) {
+        if (typeof a === 'string') {
+          html += `<p style="${styleStr(t.bodyStyle)};margin:0 0 4px;">${a}</p>`;
+        } else {
+          html += `<div style="margin-bottom:6px;"><div style="display:flex;justify-content:space-between;"><strong style="${styleStr(t.bodyStyle)};font-weight:700;">${a.activity || ''}${a.role ? ` — ${a.role}` : ''}</strong><span style="${styleStr(t.dateStyle)}">${a.duration || ''}</span></div>${a.description ? `<p style="${styleStr(t.bodyStyle)};color:#555;margin:2px 0 0;">${a.description}</p>` : ''}</div>`;
+        }
+      }
+    }
+    if (sec === 'interests' && d.interests?.length) {
+      html += sH('Interests') + `<p style="${styleStr(t.bodyStyle)};margin:0;">${d.interests.map(x => typeof x === 'string' ? x : x.name).join(' · ')}</p>`;
+    }
+    if (sec === 'publications' && d.publications?.length) {
+      html += sH('Publications');
+      for (const pub of d.publications) {
+        html += `<div style="margin-bottom:6px;"><strong style="${styleStr(t.bodyStyle)};font-weight:700;">${typeof pub === 'string' ? pub : pub.title || ''}</strong>${pub.journal ? `<span style="${styleStr(t.bodyStyle)};color:#666;"> — ${pub.journal}${pub.year ? `, ${pub.year}` : ''}</span>` : ''}</div>`;
+      }
+    }
+    if (sec === 'references') {
+      html += sH('References') + `<p style="${styleStr(t.bodyStyle)};color:#666;margin:0;font-style:italic;">Available upon request.</p>`;
+    }
+  }
+
   html += '</div>';
   el.innerHTML = html;
 }

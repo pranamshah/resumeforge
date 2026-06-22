@@ -41,7 +41,8 @@ const MiniPreview = ({ tmpl }) => {
   );
 };
 
-export default function TemplateSelector({ selectedTemplate, onSelect, onClose }) {
+export default function TemplateSelector({ selectedTemplate, setSelectedTemplate, onClose }) {
+  const onSelect = setSelectedTemplate;
   const [activeCategory, setActiveCategory] = useState('All');
   const entries = Object.entries(TEMPLATES);
   const filtered = activeCategory === 'All' ? entries : entries.filter(([, t]) => t.category === activeCategory);

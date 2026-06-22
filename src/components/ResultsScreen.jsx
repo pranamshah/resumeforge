@@ -51,15 +51,46 @@ export default function ResultsScreen({ user, groqKey, customizedResult, company
   const [refineSuggestion, setRefineSuggestion] = useState('');
   const [refining, setRefining] = useState(false);
   const [refineHistory, setRefineHistory] = useState([]);
+  const [activeSections, setActiveSections] = useState(null);
 
   if (!customizedResult) return null;
 
   const { customized_resume, ats_score, missing_skills, key_changes, top_hire_insights, section_order } = customizedResult;
 
+  const currentSectionOrder = activeSections || section_order || ['personal','summary','skills','experience','projects','education','certifications','achievements'];
+
+  const OPTIONAL_SECTIONS = [
+    { key: 'extracurricular', label: 'Extracurricular', icon: 'sports_esports' },
+    { key: 'languages', label: 'Languages', icon: 'translate' },
+    { key: 'volunteer', label: 'Volunteer', icon: 'volunteer_activism' },
+    { key: 'awards', label: 'Awards', icon: 'emoji_events' },
+    { key: 'publications', label: 'Publications', icon: 'menu_book' },
+    { key: 'interests', label: 'Interests', icon: 'interests' },
+    { key: 'references', label: 'References', icon: 'contact_page' },
+  ];
+
+  const addSection = (secKey) => {
+    if (!currentSectionOrder.includes(secKey)) {
+      setActiveSections([...currentSectionOrder, secKey]);
+    }
+  };
+
+  const removeSection = (secKey) => {
+    setActiveSections(currentSectionOrder.filter(s => s !== secKey));
+  };
+
+  const addSkillToResume = (skill) => {
+    const updated = { ...customized_resume };
+    updated.skills = { ...updated.skills };
+    updated.skills.other = [...(updated.skills.other || []), skill];
+    setCustomizedResult({ ...customizedResult, customized_resume: updated, missing_skills: missing_skills.filter(s => s !== skill) });
+    showToast(`Added "${skill}" to skills`, 'success');
+  };
+
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      renderResumeToTarget(customized_resume, section_order, selectedTemplate);
+      renderResumeToTarget(customized_resume, currentSectionOrder, selectedTemplate);
       await new Promise(r => setTimeout(r, 300));
       await exportResumeToPDF(customized_resume, company);
       showToast('Resume downloaded!', 'success');
@@ -112,7 +143,7 @@ export default function ResultsScreen({ user, groqKey, customizedResult, company
           <h1 className="font-headline-lg text-headline-lg font-black text-primary" style={{ fontSize: 20 }}>Results</h1>
           <p className="font-body-sm text-body-sm text-on-surface-variant">AI Customization Complete</p>
         </div>
-        <nav className="flex flex-col gap-xs flex-1">
+        <nav className="flex flex-col gap-xs">
           {[
             { icon: 'analytics', label: 'ATS Score' },
             { icon: 'psychology', label: 'Top Hire Insights' },
@@ -126,6 +157,26 @@ export default function ResultsScreen({ user, groqKey, customizedResult, company
             </div>
           ))}
         </nav>
+
+        {/* Optional sections */}
+        <div className="mt-md">
+          <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-xs px-xs">Add Section</p>
+          <div className="flex flex-col gap-xs">
+            {OPTIONAL_SECTIONS.map(sec => {
+              const active = currentSectionOrder.includes(sec.key);
+              return (
+                <button
+                  key={sec.key}
+                  onClick={() => active ? removeSection(sec.key) : addSection(sec.key)}
+                  className={`flex items-center gap-sm p-sm rounded-lg border transition-all text-left ${active ? 'border-primary/40 bg-primary/10 text-primary' : 'border-outline-variant/30 text-on-surface-variant hover:border-primary/30 hover:text-primary'}`}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{active ? 'check_circle' : 'add_circle'}</span>
+                  <span className="font-label-sm text-label-sm">{sec.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <div className="flex flex-col gap-xs mt-auto pt-md border-t border-outline-variant">
           <button
             onClick={handleDownload}
@@ -239,10 +290,15 @@ export default function ResultsScreen({ user, groqKey, customizedResult, company
                 </p>
                 <div className="flex flex-wrap gap-xs">
                   {missing_skills.map((s, i) => (
-                    <span key={i} className="bg-tertiary-container/20 text-tertiary border border-tertiary-container/30 px-sm py-xs rounded-full font-label-sm text-label-sm flex items-center gap-xs">
+                    <button
+                      key={i}
+                      onClick={() => addSkillToResume(s)}
+                      className="bg-tertiary-container/20 text-tertiary border border-tertiary-container/30 px-sm py-xs rounded-full font-label-sm text-label-sm flex items-center gap-xs hover:bg-tertiary/20 transition-colors"
+                      title="Click to add to resume"
+                    >
                       <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add</span>
                       {s}
-                    </span>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -326,7 +382,7 @@ export default function ResultsScreen({ user, groqKey, customizedResult, company
                 Change Template
               </button>
             </div>
-            <ResumePreview resumeData={customized_resume} sectionOrder={section_order} selectedTemplate={selectedTemplate} />
+            <ResumePreview resumeData={customized_resume} sectionOrder={currentSectionOrder} selectedTemplate={selectedTemplate} />
           </div>
         </div>
       </main>

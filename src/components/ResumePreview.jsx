@@ -149,6 +149,96 @@ export const TEMPLATES = {
     bodyStyle: { fontFamily: 'Helvetica,Arial,sans-serif', fontSize: 10.5, lineHeight: 1.5, color: '#333' },
     dateStyle: { fontFamily: 'Helvetica,Arial,sans-serif', fontSize: 9.5, color: '#777' },
   },
+  oxford: {
+    name: 'Oxford', category: 'Professional',
+    description: 'Deep burgundy accents. Academic and scholarly — ideal for research roles.',
+    headerBg: null, headerAlign: 'center', headerBorder: '2px solid #6b1e2e',
+    nameStyle: { fontFamily: 'Georgia,serif', fontSize: 22, fontWeight: 700, color: '#6b1e2e', letterSpacing: '0.04em' },
+    contactStyle: { fontFamily: 'Arial,sans-serif', fontSize: 10, color: '#666', textAlign: 'center', marginTop: 4 },
+    sectionHeaderStyle: { fontFamily: 'Arial,sans-serif', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#6b1e2e', borderBottom: '1px solid #6b1e2e', paddingBottom: 2, marginBottom: 8, marginTop: 16 },
+    bodyStyle: { fontFamily: 'Georgia,serif', fontSize: 10.5, lineHeight: 1.55, color: '#222' },
+    dateStyle: { fontFamily: 'Arial,sans-serif', fontSize: 10, color: '#888' },
+  },
+  nordic: {
+    name: 'Nordic', category: 'Creative',
+    description: 'Scandinavian clean design. White space, clarity, and calm authority.',
+    headerBg: null, headerAlign: 'left', headerBorder: '1px solid #e2e8f0',
+    nameStyle: { fontFamily: 'Inter,sans-serif', fontSize: 21, fontWeight: 600, color: '#0f172a', letterSpacing: '0.01em' },
+    contactStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10, color: '#94a3b8', marginTop: 5 },
+    sectionHeaderStyle: { fontFamily: 'Inter,sans-serif', fontSize: 8.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.25em', color: '#94a3b8', marginBottom: 8, marginTop: 22, paddingBottom: 4, borderBottom: '1px solid #f1f5f9' },
+    bodyStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10.5, lineHeight: 1.65, color: '#334155' },
+    dateStyle: { fontFamily: 'Inter,sans-serif', fontSize: 9.5, color: '#94a3b8' },
+  },
+  bordeaux: {
+    name: 'Bordeaux', category: 'Leadership',
+    description: 'Deep wine header. Premium look for directors and senior managers.',
+    headerBg: '#4a1942', headerAlign: 'left', headerBorder: null,
+    nameStyle: { fontFamily: 'Georgia,serif', fontSize: 22, fontWeight: 700, color: '#fff', letterSpacing: '0.03em' },
+    contactStyle: { fontFamily: 'Arial,sans-serif', fontSize: 11, color: '#e9d5ff', marginTop: 4 },
+    sectionHeaderStyle: { fontFamily: 'Arial,sans-serif', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#4a1942', borderLeft: '4px solid #4a1942', paddingLeft: 8, marginBottom: 8, marginTop: 16 },
+    bodyStyle: { fontFamily: 'Arial,sans-serif', fontSize: 10.5, lineHeight: 1.55, color: '#1a1a1a' },
+    dateStyle: { fontFamily: 'Arial,sans-serif', fontSize: 10, color: '#666' },
+  },
+  sage: {
+    name: 'Sage', category: 'Creative',
+    description: 'Sage green accents. Organic and modern — great for sustainability roles.',
+    headerBg: null, headerAlign: 'left', headerBorder: '2px solid #4d7c5f',
+    nameStyle: { fontFamily: 'Inter,sans-serif', fontSize: 21, fontWeight: 700, color: '#1a2e1f', letterSpacing: '-0.01em' },
+    contactStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10.5, color: '#6b8f72', marginTop: 4 },
+    sectionHeaderStyle: { fontFamily: 'Inter,sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#4d7c5f', background: '#f0f7f1', padding: '3px 8px', marginBottom: 8, marginTop: 16 },
+    bodyStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10.5, lineHeight: 1.6, color: '#1a2e1f' },
+    dateStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10, color: '#6b8f72' },
+  },
+  midnight: {
+    name: 'Midnight', category: 'Technology',
+    description: 'Deep navy with cyan. Sleek and modern for data & cloud roles.',
+    headerBg: '#0a1628', headerAlign: 'left', headerBorder: null,
+    nameStyle: { fontFamily: 'Inter,sans-serif', fontSize: 22, fontWeight: 800, color: '#67e8f9', letterSpacing: '-0.01em' },
+    contactStyle: { fontFamily: 'Inter,sans-serif', fontSize: 11, color: '#94a3b8', marginTop: 4 },
+    sectionHeaderStyle: { fontFamily: 'Inter,sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#0e7490', borderBottom: '1px solid #164e63', paddingBottom: 3, marginBottom: 8, marginTop: 16 },
+    bodyStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10.5, lineHeight: 1.55, color: '#1e293b' },
+    dateStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10, color: '#0e7490' },
+  },
+  copper: {
+    name: 'Copper', category: 'Professional',
+    description: 'Copper bronze tones. Warm and memorable — good for engineering roles.',
+    headerBg: null, headerAlign: 'left', headerBorder: '3px solid #b45309',
+    nameStyle: { fontFamily: 'Inter,sans-serif', fontSize: 22, fontWeight: 800, color: '#78350f', letterSpacing: '-0.01em' },
+    contactStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10.5, color: '#92400e', marginTop: 4 },
+    sectionHeaderStyle: { fontFamily: 'Inter,sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#b45309', borderBottom: '1px solid #fde68a', paddingBottom: 3, marginBottom: 8, marginTop: 16 },
+    bodyStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10.5, lineHeight: 1.55, color: '#1c1917' },
+    dateStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10, color: '#78350f' },
+  },
+  zen: {
+    name: 'Zen', category: 'Creative',
+    description: 'Japanese-inspired minimal. Maximum whitespace, zero clutter.',
+    headerBg: null, headerAlign: 'left', headerBorder: null,
+    nameStyle: { fontFamily: 'Helvetica,Arial,sans-serif', fontSize: 18, fontWeight: 300, color: '#000', letterSpacing: '0.15em', textTransform: 'uppercase' },
+    contactStyle: { fontFamily: 'Helvetica,Arial,sans-serif', fontSize: 9.5, color: '#999', marginTop: 8, letterSpacing: '0.08em' },
+    sectionHeaderStyle: { fontFamily: 'Helvetica,Arial,sans-serif', fontSize: 8, fontWeight: 400, textTransform: 'uppercase', letterSpacing: '0.3em', color: '#bbb', marginBottom: 10, marginTop: 24, paddingBottom: 6, borderBottom: '0.5px solid #eee' },
+    bodyStyle: { fontFamily: 'Helvetica,Arial,sans-serif', fontSize: 10.5, lineHeight: 1.7, color: '#444' },
+    dateStyle: { fontFamily: 'Helvetica,Arial,sans-serif', fontSize: 9.5, color: '#bbb' },
+  },
+  impact: {
+    name: 'Impact', category: 'Creative',
+    description: 'High-contrast black & orange. Impossible to ignore. For bold careers.',
+    headerBg: '#111', headerAlign: 'left', headerBorder: null,
+    nameStyle: { fontFamily: 'Inter,sans-serif', fontSize: 24, fontWeight: 900, color: '#f97316', letterSpacing: '-0.02em', textTransform: 'uppercase' },
+    contactStyle: { fontFamily: 'Inter,sans-serif', fontSize: 11, color: '#9ca3af', marginTop: 4 },
+    sectionHeaderStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#f97316', borderBottom: '2px solid #f97316', paddingBottom: 3, marginBottom: 8, marginTop: 16 },
+    bodyStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10.5, lineHeight: 1.55, color: '#111' },
+    dateStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10, color: '#666', fontWeight: 700 },
+  },
+  slate: {
+    name: 'Slate', category: 'Professional',
+    description: 'Slate gray with indigo highlights. Versatile for any industry.',
+    headerBg: '#334155', headerAlign: 'left', headerBorder: null,
+    nameStyle: { fontFamily: 'Inter,sans-serif', fontSize: 22, fontWeight: 700, color: '#f8fafc', letterSpacing: '0' },
+    contactStyle: { fontFamily: 'Inter,sans-serif', fontSize: 11, color: '#94a3b8', marginTop: 4 },
+    sectionHeaderStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#6366f1', borderLeft: '3px solid #6366f1', paddingLeft: 8, marginBottom: 8, marginTop: 16 },
+    bodyStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10.5, lineHeight: 1.55, color: '#1e293b' },
+    dateStyle: { fontFamily: 'Inter,sans-serif', fontSize: 10, color: '#64748b' },
+  },
 };
 
 function Section({ title, t, children }) {
@@ -287,6 +377,51 @@ function renderSections(resumeData, sectionOrder, t) {
         <p style={{ ...t.bodyStyle, margin: 0 }}>
           {d.languages.map(l => typeof l === 'string' ? l : `${l.name}${l.proficiency ? ` (${l.proficiency})` : ''}`).join(' · ')}
         </p>
+      </Section>
+    );
+
+    if (sec === 'extracurricular' && d.extracurricular?.length) return (
+      <Section key="extracurricular" title="Extracurricular Activities" t={t}>
+        {d.extracurricular.map((a, i) => (
+          <div key={i} style={{ marginBottom: 6 }}>
+            {typeof a === 'string' ? (
+              <p style={{ ...t.bodyStyle, margin: 0 }}>{a}</p>
+            ) : (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <strong style={{ ...t.bodyStyle, fontWeight: 700 }}>{a.activity}{a.role ? ` — ${a.role}` : ''}</strong>
+                  <span style={t.dateStyle}>{a.duration || ''}</span>
+                </div>
+                {a.description && <p style={{ ...t.bodyStyle, color: '#555', marginTop: 2 }}>{a.description}</p>}
+              </>
+            )}
+          </div>
+        ))}
+      </Section>
+    );
+
+    if (sec === 'interests' && d.interests?.length) return (
+      <Section key="interests" title="Interests" t={t}>
+        <p style={{ ...t.bodyStyle, margin: 0 }}>
+          {d.interests.map(x => typeof x === 'string' ? x : x.name).join(' · ')}
+        </p>
+      </Section>
+    );
+
+    if (sec === 'publications' && d.publications?.length) return (
+      <Section key="publications" title="Publications" t={t}>
+        {d.publications.map((pub, i) => (
+          <div key={i} style={{ marginBottom: 6 }}>
+            <strong style={{ ...t.bodyStyle, fontWeight: 700 }}>{typeof pub === 'string' ? pub : pub.title}</strong>
+            {pub.journal && <span style={{ ...t.bodyStyle, color: '#666' }}> — {pub.journal}{pub.year ? `, ${pub.year}` : ''}</span>}
+          </div>
+        ))}
+      </Section>
+    );
+
+    if (sec === 'references') return (
+      <Section key="references" title="References" t={t}>
+        <p style={{ ...t.bodyStyle, color: '#666', margin: 0, fontStyle: 'italic' }}>Available upon request.</p>
       </Section>
     );
 

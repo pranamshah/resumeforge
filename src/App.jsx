@@ -89,7 +89,7 @@ function ApiKeyModal({ currentKey, onSave, onClose }) {
   );
 }
 
-const TEMPLATE_KEYS = ['classic','modern','executive','minimal','accent','corporate','fresh','bold','creative','finance','elegant','prestige','tech','startup','geneva'];
+const TEMPLATE_KEYS = ['classic','modern','executive','minimal','accent','corporate','fresh','bold','creative','finance','elegant','prestige','tech','startup','geneva','oxford','nordic','bordeaux','sage','midnight','copper','zen','impact','slate'];
 
 const pickTemplateForEmail = (email) => {
   let hash = 0;
