@@ -151,33 +151,40 @@ export default function AdminDashboard({ user, onBack }) {
             </div>
           </div>
 
-          {/* Top Users */}
+          {/* All Users */}
           <div className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
-            <div className="p-md border-b border-outline-variant">
-              <h3 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Top Users by Volume</h3>
+            <div className="p-md border-b border-outline-variant flex items-center justify-between">
+              <h3 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">All Users</h3>
+              <span className="font-label-sm text-label-sm text-primary">{data?.topUsers?.length ?? 0} total</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-outline-variant">
-                    {['User','Email','Resumes Built','Last Active'].map(h => (
+                    {['#','Email','Resumes Generated','Sign-ins','First Seen','Last Active'].map(h => (
                       <th key={h} className="text-left px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {(data?.topUsers || []).slice(0, 10).map((u, i) => (
+                  {(data?.topUsers || []).map((u, i) => (
                     <tr key={i} className="border-b border-outline-variant/30 hover:bg-surface-container-high transition-colors">
-                      <td className="px-md py-sm font-body-sm text-body-sm text-on-surface">{u.name || '—'}</td>
-                      <td className="px-md py-sm font-body-sm text-body-sm text-on-surface-variant">{u.email}</td>
-                      <td className="px-md py-sm font-label-md text-label-md text-primary font-mono">{u.resumeCount ?? 0}</td>
+                      <td className="px-md py-sm font-label-sm text-label-sm text-on-surface-variant">{i + 1}</td>
+                      <td className="px-md py-sm font-body-sm text-body-sm text-on-surface max-w-[200px] truncate">{u.email}</td>
+                      <td className="px-md py-sm">
+                        <span className={`font-label-md text-label-md font-mono ${u.resumeCount > 0 ? 'text-primary' : 'text-on-surface-variant'}`}>
+                          {u.resumeCount ?? 0}
+                        </span>
+                      </td>
+                      <td className="px-md py-sm font-label-sm text-label-sm text-on-surface-variant font-mono">{u.signInCount ?? 1}</td>
+                      <td className="px-md py-sm font-label-sm text-label-sm text-on-surface-variant">{formatDate(u.firstSeen)}</td>
                       <td className="px-md py-sm font-label-sm text-label-sm text-on-surface-variant">{formatDate(u.lastActiveAt)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               {!data?.topUsers?.length && (
-                <div className="text-center py-xl text-on-surface-variant font-body-sm text-body-sm">No users yet</div>
+                <div className="text-center py-xl text-on-surface-variant font-body-sm text-body-sm">No users yet — share your app to get started!</div>
               )}
             </div>
           </div>

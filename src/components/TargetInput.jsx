@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { customizeResume } from '../utils/groqApi.js';
-import { checkAndIncrementUsage } from '../firebase.js';
+import { checkAndIncrementUsage, saveResumeRecord } from '../firebase.js';
 import { showToast } from '../utils/toast.js';
 
 function LimitModal({ resetAt, onBack }) {
@@ -79,6 +79,15 @@ export default function TargetInput({ user, groqKey, resumeData, company, setCom
     try {
       const result = await customizeResume(groqKey, resumeData, company, jobTitle, skipJD ? '' : jobDescription);
       setCustomizedResult(result);
+      // Record every generation (not just downloads) so admin sees accurate count
+      if (user) {
+        saveResumeRecord(user, {
+          company,
+          role: jobTitle,
+          atsScore: result.ats_score,
+          flow: 'generate',
+        });
+      }
       setScreen('results');
     } catch (err) {
       showToast(err.message || 'Customization failed. Try again.', 'error');

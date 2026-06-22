@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createOrUpdateUser, checkUserExists, isAdmin } from './firebase.js';
+import { recordSignIn, isAdmin } from './firebase.js';
 import { DEFAULT_GROQ_KEY } from './config.js';
 import { showToast } from './utils/toast.js';
 import Navbar from './components/Navbar.jsx';
@@ -128,6 +128,10 @@ export default function App() {
   const restoreUser = (email) => {
     const u = { email, displayName: email, uid: email, photoURL: null };
     setUser(u);
+    // Record once per browser session so returning users still appear in admin
+    if (!sessionStorage.getItem('rf_signin_recorded')) {
+      recordSignIn(email).then(() => sessionStorage.setItem('rf_signin_recorded', '1'));
+    }
   };
 
   const handleSignIn = (email) => {
@@ -137,8 +141,8 @@ export default function App() {
     setShowEmailModal(false);
     const tmpl = localStorage.getItem('rf_template') || pickTemplateForEmail(email);
     setSelectedTemplate(tmpl);
-    checkUserExists(email).then(exists => createOrUpdateUser(u, !exists)).catch(() => {});
-    showToast(`Welcome! Your default template: ${tmpl}`, 'success');
+    recordSignIn(email); // always record new sign-ins
+    showToast(`Welcome to ResumeForge!`, 'success');
   };
 
   const handleSignOut = () => {
