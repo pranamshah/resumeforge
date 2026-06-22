@@ -36,7 +36,7 @@ export default function LoadingScreen({ company, jobTitle }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-background flex flex-col items-center justify-center px-margin-mobile">
+    <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center px-margin-mobile">
       {/* Pulsing ring */}
       <div className="relative mb-xl">
         <div className="w-24 h-24 rounded-full border-4 border-primary/20 absolute inset-0 animate-ping"></div>
