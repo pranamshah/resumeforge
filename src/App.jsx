@@ -89,6 +89,17 @@ function ApiKeyModal({ currentKey, onSave, onClose }) {
   );
 }
 
+const TEMPLATE_KEYS = ['classic', 'modern', 'executive', 'minimal', 'accent'];
+
+const pickTemplateForEmail = (email) => {
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) {
+    hash = (hash << 5) - hash + email.charCodeAt(i);
+    hash |= 0;
+  }
+  return TEMPLATE_KEYS[Math.abs(hash) % TEMPLATE_KEYS.length];
+};
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [screen, setScreen] = useState('landing');
@@ -107,7 +118,11 @@ export default function App() {
 
   useEffect(() => {
     const saved = localStorage.getItem('rf_user_email');
-    if (saved) restoreUser(saved);
+    if (saved) {
+      restoreUser(saved);
+      const savedTemplate = localStorage.getItem('rf_template') || pickTemplateForEmail(saved);
+      setSelectedTemplate(savedTemplate);
+    }
   }, []);
 
   const restoreUser = (email) => {
@@ -120,8 +135,10 @@ export default function App() {
     localStorage.setItem('rf_user_email', email);
     setUser(u);
     setShowEmailModal(false);
+    const tmpl = localStorage.getItem('rf_template') || pickTemplateForEmail(email);
+    setSelectedTemplate(tmpl);
     checkUserExists(email).then(exists => createOrUpdateUser(u, !exists)).catch(() => {});
-    showToast(`Welcome, ${email}`, 'success');
+    showToast(`Welcome! Your default template: ${tmpl}`, 'success');
   };
 
   const handleSignOut = () => {
@@ -146,11 +163,16 @@ export default function App() {
     return true;
   };
 
+  const handleSetTemplate = (tmpl) => {
+    setSelectedTemplate(tmpl);
+    localStorage.setItem('rf_template', tmpl);
+  };
+
   const shared = {
     user, groqKey, company, setCompany, jobTitle, setJobTitle,
     jobDescription, setJobDescription, resumeData, setResumeData,
     customizedResult, setCustomizedResult, setScreen, activeFlow, setActiveFlow,
-    selectedTemplate, setSelectedTemplate,
+    selectedTemplate, setSelectedTemplate: handleSetTemplate,
   };
 
   return (

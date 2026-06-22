@@ -126,6 +126,18 @@ Max 5-6 items per category. Only suggest skills clearly implied by the experienc
   return parseJSON(text);
 };
 
+export const refineResume = async (apiKey, currentResume, suggestion, company, jobTitle) => {
+  const text = await callGroq(apiKey, {
+    model: 'llama-3.3-70b-versatile',
+    jsonMode: false,
+    system: `You are an expert resume writer refining a resume for a ${jobTitle} role at ${company}.
+Apply ONLY the specific change the user requests. Keep all other content identical.
+Return ONLY the updated resume JSON using the same structure as the input. No markdown, no backticks, no explanation.`,
+    user: `Current resume:\n${JSON.stringify(currentResume, null, 2)}\n\nUser requested change: "${suggestion}"\n\nReturn updated resume JSON only.`,
+  });
+  return parseJSON(text);
+};
+
 export const generateSummary = async (apiKey, resumeData, targetRole = '') => {
   const text = await callGroq(apiKey, {
     model: 'llama-3.3-70b-versatile',
