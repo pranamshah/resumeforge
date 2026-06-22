@@ -105,7 +105,7 @@ export default function ResultsScreen({ user, groqKey, customizedResult, company
     setDownloading(true);
     try {
       await exportResumeToPDF(previewRef.current, customized_resume, company);
-      showToast('Resume downloaded!', 'success');
+      showToast('Choose "Save as PDF" to download your resume', 'info');
       if (user) {
         await saveResumeRecord(user, { company, role: jobTitle, atsScore: ats_score, flow: activeFlow || 'upload' });
       }

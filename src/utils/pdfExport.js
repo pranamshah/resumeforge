@@ -1,77 +1,71 @@
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+// Vector PDF export via the browser's native print engine.
+// This renders the REAL resume DOM (crisp, selectable text — not a blurry
+// raster screenshot), is instant (no html2canvas hang), and matches the
+// preview exactly. The user picks "Save as PDF" in the print dialog.
 
 export const exportResumeToPDF = async (element, resumeData, company) => {
   if (!element) throw new Error('Preview element not found');
 
-  // Make sure web fonts (Inter etc.) are loaded — otherwise html2canvas
-  // stalls/retries waiting for them, which is what caused the long hang.
+  // Wait for web fonts so the print render uses the right typefaces.
   if (document.fonts?.ready) {
     try { await document.fonts.ready; } catch { /* ignore */ }
   }
 
-  // Clone at the SAME width the preview is rendered at on screen so line
-  // wrapping and spacing are identical to what the user sees. Strip the
-  // badge / shadow / rounded corners that shouldn't be in the PDF.
-  const width = element.offsetWidth;
   const clone = element.cloneNode(true);
   clone.querySelectorAll('.preview-badge').forEach(b => b.remove());
   Object.assign(clone.style, {
-    width: `${width}px`,
-    minHeight: 'auto',
     boxShadow: 'none',
     borderRadius: '0',
     margin: '0',
-  });
-
-  const holder = document.createElement('div');
-  Object.assign(holder.style, {
-    position: 'fixed',
-    left: '-10000px',
-    top: '0',
-    width: `${width}px`,
+    width: '100%',
+    minHeight: 'auto',
     background: '#ffffff',
   });
-  holder.appendChild(clone);
-  document.body.appendChild(holder);
 
-  try {
-    const canvas = await html2canvas(clone, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      imageTimeout: 0,
-      removeContainer: true,
-    });
+  const firstName = (resumeData?.personal?.name || 'Resume').split(' ')[0];
+  const co = (company || 'Company').replace(/[^a-zA-Z0-9]/g, '_');
+  const title = `${firstName}_${co}_Resume`;
 
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const imgH = (canvas.height * pageW) / canvas.width;
+  const iframe = document.createElement('iframe');
+  Object.assign(iframe.style, {
+    position: 'fixed', right: '0', bottom: '0',
+    width: '0', height: '0', border: '0', visibility: 'hidden',
+  });
+  document.body.appendChild(iframe);
 
-    if (imgH <= pageH + 1) {
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pageW, imgH);
-    } else {
-      const pageSliceH = (pageH * canvas.width) / pageW; // source px per page
-      let y = 0, page = 0;
-      while (y < canvas.height) {
-        if (page > 0) pdf.addPage();
-        const sliceH = Math.min(pageSliceH, canvas.height - y);
-        const slice = document.createElement('canvas');
-        slice.width = canvas.width;
-        slice.height = sliceH;
-        slice.getContext('2d').drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
-        pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pageW, (sliceH * pageW) / canvas.width);
-        y += sliceH;
-        page++;
-      }
-    }
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>${title}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #ffffff; }
+  body { font-family: Inter, Arial, sans-serif; }
+  ul, li { break-inside: avoid; }
+</style>
+</head><body>${clone.outerHTML}</body></html>`);
+  doc.close();
 
-    const firstName = (resumeData?.personal?.name || 'Resume').split(' ')[0];
-    const co = (company || 'Company').replace(/[^a-zA-Z0-9]/g, '_');
-    pdf.save(`${firstName}_${co}_Resume.pdf`);
-  } finally {
-    document.body.removeChild(holder);
-  }
+  // Wait for the iframe document (and its fonts) to be fully ready.
+  await new Promise((resolve) => {
+    const win = iframe.contentWindow;
+    const ready = () => {
+      const fontsReady = win.document.fonts?.ready || Promise.resolve();
+      fontsReady.then(() => setTimeout(resolve, 200));
+    };
+    if (win.document.readyState === 'complete') ready();
+    else win.addEventListener('load', ready);
+  });
+
+  iframe.contentWindow.focus();
+  iframe.contentWindow.print();
+
+  // Remove the iframe after the print dialog has been handled.
+  setTimeout(() => {
+    if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+  }, 1500);
 };
