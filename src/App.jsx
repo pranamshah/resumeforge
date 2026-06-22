@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { onAuthChange, signInWithGoogle, handleRedirectResult, signOutUser, createOrUpdateUser, checkUserExists, isAdmin } from './firebase.js';
+import { createOrUpdateUser, checkUserExists, isAdmin } from './firebase.js';
 import { DEFAULT_GROQ_KEY } from './config.js';
 import { showToast } from './utils/toast.js';
 import Navbar from './components/Navbar.jsx';
@@ -11,6 +11,50 @@ import TargetInput from './components/TargetInput.jsx';
 import LoadingScreen from './components/LoadingScreen.jsx';
 import ResultsScreen from './components/ResultsScreen.jsx';
 import AdminDashboard from './components/AdminDashboard.jsx';
+
+function EmailModal({ onSave }) {
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+
+  const handle = () => {
+    const val = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+      setError('Enter a valid email address');
+      return;
+    }
+    onSave(val);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-900 border border-gray-700 rounded-2xl p-8 w-full max-w-md">
+        <div className="flex items-center gap-sm mb-md">
+          <span className="material-symbols-outlined text-primary" style={{ fontSize: 32 }}>mail</span>
+          <div>
+            <h2 className="text-white text-xl font-bold">Welcome to ResumeForge</h2>
+            <p className="text-gray-400 text-sm mt-xs">Enter your email to get started — no password needed.</p>
+          </div>
+        </div>
+        <input
+          type="email"
+          value={email}
+          onChange={e => { setEmail(e.target.value); setError(''); }}
+          onKeyDown={e => e.key === 'Enter' && handle()}
+          placeholder="you@example.com"
+          autoFocus
+          className="w-full bg-[#0B1120] border border-gray-600 rounded-lg px-4 py-3 text-white text-sm mb-2 focus:border-blue-500 focus:outline-none"
+        />
+        {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
+        <button
+          onClick={handle}
+          className="w-full bg-primary text-on-primary font-label-md text-label-md py-3 rounded-lg hover:opacity-90 transition-all electric-glow mt-sm"
+        >
+          Continue →
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function ApiKeyModal({ currentKey, onSave, onClose }) {
   const [key, setKey] = useState(currentKey);
@@ -47,10 +91,10 @@ function ApiKeyModal({ currentKey, onSave, onClose }) {
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
   const [screen, setScreen] = useState('landing');
   const [groqKey, setGroqKey] = useState(() => DEFAULT_GROQ_KEY || localStorage.getItem('rf_groq_key') || '');
   const [showKeyModal, setShowKeyModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   const [resumeData, setResumeData] = useState(null);
   const [customizedResult, setCustomizedResult] = useState(null);
@@ -62,31 +106,31 @@ export default function App() {
   const [jobDescription, setJobDescription] = useState('');
 
   useEffect(() => {
-    handleRedirectResult().catch(() => {});
-    const unsub = onAuthChange(async (firebaseUser) => {
-      if (firebaseUser) {
-        const exists = await checkUserExists(firebaseUser.uid);
-        await createOrUpdateUser(firebaseUser, !exists);
-        setUser(firebaseUser);
-      } else {
-        setUser(null);
-      }
-      setAuthLoading(false);
-    });
-    return unsub;
+    const saved = localStorage.getItem('rf_user_email');
+    if (saved) restoreUser(saved);
   }, []);
 
-  const handleSignIn = async () => {
-    try { await signInWithGoogle(); }
-    catch { showToast('Sign-in failed. Try again.', 'error'); }
+  const restoreUser = (email) => {
+    const u = { email, displayName: email, uid: email, photoURL: null };
+    setUser(u);
   };
 
-  const handleSignOut = async () => {
-    await signOutUser();
+  const handleSignIn = (email) => {
+    const u = { email, displayName: email, uid: email, photoURL: null };
+    localStorage.setItem('rf_user_email', email);
+    setUser(u);
+    setShowEmailModal(false);
+    checkUserExists(email).then(exists => createOrUpdateUser(u, !exists)).catch(() => {});
+    showToast(`Welcome, ${email}`, 'success');
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem('rf_user_email');
+    setUser(null);
     setScreen('landing');
     setResumeData(null);
     setCustomizedResult(null);
-    showToast('Signed out successfully', 'info');
+    showToast('Signed out', 'info');
   };
 
   const saveGroqKey = (key) => {
@@ -97,18 +141,10 @@ export default function App() {
   };
 
   const requireAuth = () => {
-    if (!user) { showToast('Please sign in with Google first', 'warning'); return false; }
+    if (!user) { setShowEmailModal(true); return false; }
     if (!groqKey) { setShowKeyModal(true); return false; }
     return true;
   };
-
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-blue-400 text-sm">Loading...</div>
-      </div>
-    );
-  }
 
   const shared = {
     user, groqKey, company, setCompany, jobTitle, setJobTitle,
@@ -121,7 +157,7 @@ export default function App() {
     <div className="min-h-screen">
       <Navbar
         user={user}
-        onSignIn={handleSignIn}
+        onSignIn={() => setShowEmailModal(true)}
         onSignOut={handleSignOut}
         onAdminClick={() => setScreen('admin')}
         onLogoClick={() => setScreen('landing')}
@@ -129,9 +165,11 @@ export default function App() {
         groqKeySet={!!groqKey}
         isAdminUser={isAdmin(user)}
       />
+
+      {showEmailModal && <EmailModal onSave={handleSignIn} />}
       {showKeyModal && <ApiKeyModal currentKey={groqKey} onSave={saveGroqKey} onClose={() => setShowKeyModal(false)} />}
 
-      {screen === 'landing'       && <Landing user={user} onUpload={() => requireAuth() && setScreen('upload')} onBuild={() => requireAuth() && setScreen('build')} onSignIn={handleSignIn} />}
+      {screen === 'landing'       && <Landing user={user} onUpload={() => requireAuth() && setScreen('upload')} onBuild={() => requireAuth() && setScreen('build')} onSignIn={() => setShowEmailModal(true)} />}
       {screen === 'upload'        && <UploadScreen {...shared} />}
       {screen === 'editExtracted' && <ExtractedDataEditor {...shared} />}
       {screen === 'build'         && <BuildResumeForm {...shared} />}

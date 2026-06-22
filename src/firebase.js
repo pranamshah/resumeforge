@@ -1,28 +1,13 @@
 import { initializeApp } from 'firebase/app';
 import {
-  getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult,
-  signOut, onAuthStateChanged,
-} from 'firebase/auth';
-import {
   getFirestore, doc, setDoc, getDoc, updateDoc, increment,
   collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp,
 } from 'firebase/firestore';
 import { FIREBASE_CONFIG, ADMIN_EMAIL } from './config.js';
 
 const app = initializeApp(FIREBASE_CONFIG);
-export const auth = getAuth(app);
 export const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider();
 
-export const signInWithGoogle = () => signInWithRedirect(auth, googleProvider);
-
-export const handleRedirectResult = async () => {
-  const result = await getRedirectResult(auth);
-  return result?.user ?? null;
-};
-
-export const signOutUser = () => signOut(auth);
-export const onAuthChange = (cb) => onAuthStateChanged(auth, cb);
 export const isAdmin = (user) => user?.email === ADMIN_EMAIL;
 
 export const checkUserExists = async (uid) => {
