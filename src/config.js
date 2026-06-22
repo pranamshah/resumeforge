@@ -11,6 +11,5 @@ export const FIREBASE_CONFIG = {
 // Your Gmail — this account gets admin dashboard access
 export const ADMIN_EMAIL = "shahpranam31@gmail.com";
 
-// Optional: put your Groq key here to share with all users
-// Leave empty "" to make users enter their own key
-export const DEFAULT_GROQ_KEY = "";
+// Reads from Vercel environment variable VITE_GROQ_KEY
+export const DEFAULT_GROQ_KEY = import.meta.env.VITE_GROQ_KEY || "";
